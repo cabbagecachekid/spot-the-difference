@@ -121,13 +121,21 @@ ln -s "$PWD/spot-the-difference/skills/spot-the-difference" ~/.claude/skills/spo
 
 The script also runs standalone, with no install at all.
 
-## Formats
+## Formats and dependencies
 
-`.md`, `.txt`, and `.html` work out of the box.
+There are no required dependencies. `.md`, `.txt`, and `.html` work out of the
+box on a stock Mac.
 
-`.pdf` needs [pdftotext](https://poppler.freedesktop.org/) and `.docx` needs
-[pandoc](https://pandoc.org/). Both are optional. If they are missing, those
-files are skipped and the report says exactly how many were skipped and why.
+Two optional tools are recommended for wider coverage: `.pdf` needs
+[pdftotext](https://poppler.freedesktop.org/) and `.docx` needs
+[pandoc](https://pandoc.org/).
+
+```bash
+brew install poppler pandoc
+```
+
+If they are missing, those files are skipped and the report says exactly how
+many were skipped and why.
 
 Any other file type is also counted and named, so pointing this at a folder of
 mixed formats tells you what it could not read rather than quietly leaving it
