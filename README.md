@@ -183,4 +183,7 @@ do about a difference stays with you.
 
 ## License
 
-MIT.
+[PolyForm Noncommercial 1.0.0](LICENSE): free to use, copy, change, and share
+for any noncommercial purpose. Commercial use needs a separate license from the
+author. (Versions through 0.4.1 were published under MIT; that grant still
+applies to those versions only.)
