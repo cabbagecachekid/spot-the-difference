@@ -28,6 +28,8 @@ HAVE_PANDOC=0;    command -v pandoc    >/dev/null 2>&1 && HAVE_PANDOC=1
 
 SKIPPED_PDF=0
 SKIPPED_DOCX=0
+SKIPPED_OTHER=0
+SKIPPED_EXTS=""
 
 # ---------- temp workspace ----------
 
@@ -169,7 +171,16 @@ is_supported() {
     md|markdown|txt|text|html|htm) return 0 ;;
     pdf)  [ "$HAVE_PDFTOTEXT" -eq 1 ] && return 0; SKIPPED_PDF=$((SKIPPED_PDF+1));  return 1 ;;
     docx) [ "$HAVE_PANDOC"    -eq 1 ] && return 0; SKIPPED_DOCX=$((SKIPPED_DOCX+1)); return 1 ;;
-    *) return 1 ;;
+    # Anything else is counted and named, never dropped in silence. A drift
+    # checker that quietly ignores files is worse than useless: the gap it
+    # hides is exactly the kind of thing it exists to find.
+    *)
+      SKIPPED_OTHER=$((SKIPPED_OTHER+1))
+      case " $SKIPPED_EXTS " in
+        *" ${1:-none} "*) : ;;
+        *) SKIPPED_EXTS="$SKIPPED_EXTS ${1:-none}" ;;
+      esac
+      return 1 ;;
   esac
 }
 
@@ -417,7 +428,10 @@ report_skips() {
   if [ "$SKIPPED_DOCX" -gt 0 ]; then
     echo "> Skipped $SKIPPED_DOCX .docx file(s): \`pandoc\` is not installed."
   fi
-  if [ "$SKIPPED_PDF" -gt 0 ] || [ "$SKIPPED_DOCX" -gt 0 ]; then echo; fi
+  if [ "$SKIPPED_OTHER" -gt 0 ]; then
+    echo "> Skipped $SKIPPED_OTHER file(s) of unsupported type:$SKIPPED_EXTS."
+  fi
+  if [ "$SKIPPED_PDF" -gt 0 ] || [ "$SKIPPED_DOCX" -gt 0 ] || [ "$SKIPPED_OTHER" -gt 0 ]; then echo; fi
 }
 
 # ---------- compare ----------

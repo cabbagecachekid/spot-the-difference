@@ -113,7 +113,10 @@ The script also runs standalone, with no install at all.
 `.pdf` needs [pdftotext](https://poppler.freedesktop.org/) and `.docx` needs
 [pandoc](https://pandoc.org/). Both are optional. If they are missing, those
 files are skipped and the report says exactly how many were skipped and why.
-Nothing is dropped silently.
+
+Any other file type is also counted and named, so pointing this at a folder of
+mixed formats tells you what it could not read rather than quietly leaving it
+out. Nothing is dropped silently.
 
 Runs on a stock macOS shell (bash 3.2, BSD userland) with no install step.
 

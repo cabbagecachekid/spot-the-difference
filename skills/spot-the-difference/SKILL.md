@@ -55,8 +55,9 @@ bash "$SPOT" trace --source LABEL=PATH --term "STRING" [--loose]
 same thing is written more than one way.
 
 Formats: `.md`, `.txt`, `.html` always; `.pdf` if `pdftotext` is installed;
-`.docx` if `pandoc` is installed. Missing tools are reported and skipped, never
-silently dropped.
+`.docx` if `pandoc` is installed. Anything skipped is reported with a count,
+whether it was skipped for a missing tool or because the file type is not
+supported at all. Nothing is dropped in silence.
 
 ## Step 3 — Present the results
 
