@@ -88,8 +88,14 @@
     border-radius: 62% 38% 54% 46% / 48% 62% 38% 52%;
   }
   .hero h1 {
-    font-size: clamp(1.75rem, 5.4vw, 2.9rem); line-height: 1.1;
-    max-width: 22ch; margin-bottom: 1.2rem;
+    font-size: clamp(2rem, 7.2vw, 3.6rem); line-height: 1.05;
+    margin-bottom: 1rem; letter-spacing: -0.03em;
+  }
+  /* the name is the headline, so the tagline carries the sentence */
+  .tagline {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+    max-width: 34ch; margin-bottom: 0.9rem; line-height: 1.35;
   }
   /* the signature: the payload sits inside a neon spot */
   .hero h1 mark {
@@ -222,8 +228,8 @@
   <!-- HERO -->
   <header class="hero">
     <span class="spots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-    <p class="wordmark rise">spot-the-difference</p>
-    <h1 class="rise d2">Compare two or more sets of documents. <mark>Report what differs.</mark></h1>
+    <h1 class="rise">spot-the-<mark>difference</mark></h1>
+    <p class="tagline rise d2">Compare two or more sets of documents. Report what differs.</p>
     <p class="lede rise d3">Values, headings, coverage. Markdown, HTML, text, PDF, Word. Local only, nothing uploaded.</p>
     <div class="hero-cta rise d3">
       <div class="cmd">
@@ -238,7 +244,7 @@
   <section>
     <p class="eyebrow">Failure mode</p>
     <h2>Copy drifts during production.</h2>
-    <p class="lede">Wording gets settled. Layout gets iterated. By the final render the text is not the text that was approved. One digit in a price. A section that quietly stopped existing.</p>
+    <p class="lede">Wording gets approved, then the layout changes and the file is re-rendered. What ships is not what was signed off.</p>
     <div class="readout">
       <div class="row"><span class="src">master.md</span><span>tier costs <span class="hit">$29</span> per month</span></div>
       <div class="row"><span class="src">index.html</span><span>tier costs <span class="hit">$39</span> per month</span></div>
@@ -253,7 +259,7 @@
     <h2>Four questions.</h2>
     <article class="flow">
       <h3>compare</h3>
-      <p class="promise">Question two decides the shape of the output. It is never guessed.</p>
+      <p class="promise">Question two changes the entire output. It is never guessed.</p>
       <ol class="rail">
         <li><span class="q">sources</span> two or more paths, file or folder</li>
         <li class="gate"><span class="q">truth</span> is one of them authoritative, or is there no winner</li>
@@ -289,7 +295,7 @@
     <ul class="rules">
       <li><span class="k"><span>Values</span></span><span class="v">Numbers, dates, money, percentages. Extracted per class and masked between passes, so a price is never shredded into stray digits.</span></li>
       <li><span class="k"><span>Structure</span></span><span class="v">Headings present in one matched item and not another.</span></li>
-      <li><span class="k"><span>Missing</span></span><span class="v">Not found at any level, not as a file and not as a heading. Separate from items merely stored at a different grain.</span></li>
+      <li><span class="k"><span>Missing</span></span><span class="v">Not found at any level, not as a file and not as a heading. Separate from items that exist on both sides but are filed differently.</span></li>
       <li><span class="k"><span>Needs your eye</span></span><span class="v">Low confidence pairings and name collisions. Guesses are labelled as guesses.</span></li>
     </ul>
   </section>
@@ -300,7 +306,7 @@
     <h2>It reports. It does not fix.</h2>
     <ul class="rules">
       <li><span class="k"><span>No writes</span></span><span class="v">Nothing is rewritten, synced, or auto-applied. Acting on a difference stays a deliberate act.</span></li>
-      <li><span class="k"><span>No verdicts</span></span><span class="v">Without a source of truth it names the disagreement and stops. It does not score whether a change was an improvement.</span></li>
+      <li><span class="k"><span>No verdicts</span></span><span class="v">Without a source of truth it names the disagreement and stops there. Whether a wording change was an improvement is your call, never a score.</span></li>
       <li><span class="k"><span>No silent drops</span></span><span class="v">Missing optional tools are named with a count. A skipped file is always reported as skipped.</span></li>
       <li><span class="k"><span>No uploads</span></span><span class="v">Every pass runs on the machine. There is no network call anywhere in it.</span></li>
     </ul>
@@ -333,7 +339,7 @@
 
   <footer>
     <p>MIT license &middot; <a href="https://github.com/cabbagecachekid/spot-the-difference">Source on GitHub</a> &middot; By <a href="https://github.com/cabbagecachekid">cabbagecachekid</a></p>
-    <p>No analytics, no trackers, no signup. A static page about free software.</p>
+    <p>No analytics and no trackers on this page. The skill makes no network calls either.</p>
   </footer>
 
 </main>

@@ -18,7 +18,7 @@ Some of those changes are obvious. Some are one digit in a price, or a section
 that quietly stopped existing. Those are the ones that reach other people.
 
 Checking by hand is tedious enough that it does not reliably happen. So it does
-not get done, and the mismatch ships.
+not get done, and the mismatch goes out to other people.
 
 ## Who this is for
 
