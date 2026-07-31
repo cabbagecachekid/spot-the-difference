@@ -147,17 +147,23 @@
   .cmd button:hover { background: var(--ink); color: var(--ground); }
   .cmd button[data-state="ok"] { background: var(--neon); border-color: var(--ink); color: var(--ink); }
 
-  /* the readout: a values-disagree strip, the product in one glance */
-  .readout {
-    font-family: var(--mono); font-size: 0.85rem; margin-top: 1.3rem;
-    background: var(--surface); border: var(--border); border-left: 7px solid var(--ink);
-    padding: 0.85rem 1rem; max-width: 40rem;
+  /* the readout: a two-source comparison table, the product in one glance */
+  .readout { margin-top: 1.3rem; max-width: 42rem; }
+  .readout table {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--mono); font-size: 0.82rem;
+    background: var(--surface); border: var(--border);
   }
-  .readout .row { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; padding: 0.18rem 0; }
-  .readout .src { color: var(--muted); min-width: 7.5rem; }
-  .readout .hit { background: var(--neon); color: var(--ink); padding: 0 0.3rem; font-weight: 700; }
-  .readout .same { color: var(--muted); }
-  .readout .cap { display: block; margin-top: 0.6rem; color: var(--muted); font-size: 0.76rem; }
+  .readout th, .readout td { text-align: left; padding: 0.5rem 0.7rem; vertical-align: top; }
+  .readout thead th {
+    font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
+    background: var(--ink); color: var(--ground); font-weight: 700;
+  }
+  .readout tbody tr + tr td { border-top: 1px solid var(--hair); }
+  .readout tbody th { font-weight: 400; color: var(--muted); white-space: nowrap; }
+  .readout .hit { background: var(--neon); color: var(--ink); padding: 0 0.28rem; font-weight: 700; }
+  .readout .cap { margin-top: 0.6rem; color: var(--muted); font-size: 0.78rem; font-family: var(--mono); }
+  @media (max-width: 560px) { .readout table { font-size: 0.74rem; } .readout th, .readout td { padding: 0.4rem 0.45rem; } }
 
   /* ---- mode cards ---- */
   .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.4rem; }
@@ -246,10 +252,33 @@
     <h2>Copy drifts during production.</h2>
     <p class="lede">Wording gets approved, then the layout changes and the file is re-rendered. What ships is not what was signed off.</p>
     <div class="readout">
-      <div class="row"><span class="src">master.md</span><span>tier costs <span class="hit">$29</span> per month</span></div>
-      <div class="row"><span class="src">index.html</span><span>tier costs <span class="hit">$39</span> per month</span></div>
-      <div class="row"><span class="src same">both</span><span class="same">40% uptake, not reported</span></div>
-      <span class="cap">Values are reported first and separately. Reworded prose is usually deliberate. A changed number usually is not.</span>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Claim</th>
+            <th scope="col">welcome-email.md</th>
+            <th scope="col">landing-page.html</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">setup time</th>
+            <td>under <span class="hit">10 minutes</span></td>
+            <td>under <span class="hit">30 minutes</span></td>
+          </tr>
+          <tr>
+            <th scope="row">what it is called</th>
+            <td><span class="hit">Workspaces</span></td>
+            <td><span class="hit">Projects</span></td>
+          </tr>
+          <tr>
+            <th scope="row">plan tiers</th>
+            <td>three</td>
+            <td>three</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="cap">Only the disagreements get reported. Values come first, because a changed number is rarely deliberate while reworded prose usually is.</p>
     </div>
   </section>
 
