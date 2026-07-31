@@ -135,6 +135,16 @@ versions you want compared into the chat, since claude.ai cannot see your disk.
 bash spot.sh compare --source draft=./docs --source published=./site
 ```
 
+## Model and effort
+
+Defaults are fine, in both Claude Code and claude.ai. The comparison itself is
+done by a shell script, so it is exactly as accurate on a small fast model as on
+a large one, and it needs no extended thinking or raised effort.
+
+The one model-bound part is reading: if you ask for a judgment on how *prose*
+drifted across large documents, that reading is done by the model, not the
+script — pick your stronger model for that run.
+
 ## Formats and dependencies
 
 There are no required dependencies. `.md`, `.txt`, and `.html` work out of the
