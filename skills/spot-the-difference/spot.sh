@@ -194,31 +194,35 @@ extract_values() {
   # everything already matched — "$29" and "2026-03-01" come back as stray
   # 29, 2026, 03, 01 — and a values section full of fragments is one nobody
   # trusts enough to read.
-  local t="$WORK/.vals.$$"
   local m="$WORK/.mask.$$"
-  cat > "$t"
-  cp "$t" "$m"
+  cat > "$m"
+
+  # Masking goes through a redirect and mv, not `sed -i`: the in-place flag is
+  # the one spot where BSD and GNU sed disagree on syntax, and on the wrong sed
+  # it fails under the 2>/dev/null — masking silently never happens and the
+  # NUMBER pass shreds every price and date into fragments.
+  mask() { sed -E -e "$1" "$m" > "$m.next" 2>/dev/null && mv "$m.next" "$m"; }
 
   grep -oE '\$[0-9][0-9,]*(\.[0-9]+)?' "$m" 2>/dev/null | sed -e 's/^/MONEY'$'\t''/'
-  sed -E -i '' -e 's/\$[0-9][0-9,]*(\.[0-9]+)?/ /g' "$m" 2>/dev/null
+  mask 's/\$[0-9][0-9,]*(\.[0-9]+)?/ /g'
 
   grep -oE '[0-9]+(\.[0-9]+)?%' "$m" 2>/dev/null | sed -e 's/^/PERCENT'$'\t''/'
-  sed -E -i '' -e 's/[0-9]+(\.[0-9]+)?%/ /g' "$m" 2>/dev/null
+  mask 's/[0-9]+(\.[0-9]+)?%/ /g'
 
   grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' "$m" 2>/dev/null | sed -e 's/^/DATE'$'\t''/'
-  sed -E -i '' -e 's/[0-9]{4}-[0-9]{2}-[0-9]{2}/ /g' "$m" 2>/dev/null
+  mask 's/[0-9]{4}-[0-9]{2}-[0-9]{2}/ /g'
 
   grep -oE '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?[ ][0-9]{4}' "$m" 2>/dev/null \
     | sed -e 's/^/DATE'$'\t''/'
-  sed -E -i '' -e 's/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?[ ][0-9]{4}/ /g' "$m" 2>/dev/null
+  mask 's/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?[ ][0-9]{4}/ /g'
 
   grep -oE '(^|[^0-9])(19|20)[0-9]{2}([^0-9]|$)' "$m" 2>/dev/null \
     | grep -oE '(19|20)[0-9]{2}' | sed -e 's/^/YEAR'$'\t''/'
-  sed -E -i '' -e 's/(19|20)[0-9]{2}/ /g' "$m" 2>/dev/null
+  mask 's/(19|20)[0-9]{2}/ /g'
 
   grep -oE '[0-9][0-9,]*(\.[0-9]+)?' "$m" 2>/dev/null | sed -e 's/^/NUMBER'$'\t''/'
 
-  rm -f "$t" "$m"
+  rm -f "$m" "$m.next"
 }
 
 extract_watch() {
@@ -226,7 +230,9 @@ extract_watch() {
   local text_file="$WORK/.watch.$$"
   cat > "$text_file"
   if [ -n "$WATCHLIST" ]; then
-    printf '%s' "$WATCHLIST" | tr ',' '\n' | while IFS= read -r term; do
+    # The trailing \n matters: without it, `read` fails on the final unterminated
+    # line and the LAST watch term is silently never checked.
+    printf '%s\n' "$WATCHLIST" | tr ',' '\n' | while IFS= read -r term; do
       term="$(printf '%s' "$term" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
       [ -z "$term" ] && continue
       if grep -qiF -- "$term" "$text_file" 2>/dev/null; then
@@ -388,9 +394,17 @@ while [ $# -gt 0 ]; do
     --source)
       [ $# -ge 2 ] || die "--source needs LABEL=PATH"
       case "$2" in
+        =*) die "--source needs a non-empty LABEL before the =, got: $2" ;;
         *=*) : ;;
         *) die "--source expects LABEL=PATH, got: $2" ;;
       esac
+      # A duplicate label would make every line of the report ambiguous, and an
+      # empty one matches the unset --truth and gets a phantom truth marker.
+      i=0
+      while [ $i -lt $N_SRC ]; do
+        [ "${SRC_LABEL[$i]}" = "${2%%=*}" ] && die "duplicate --source label: ${2%%=*}"
+        i=$((i+1))
+      done
       SRC_LABEL[$N_SRC]="${2%%=*}"
       SRC_PATH[$N_SRC]="${2#*=}"
       N_SRC=$((N_SRC+1)); shift 2 ;;
