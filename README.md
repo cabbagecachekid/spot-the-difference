@@ -124,8 +124,9 @@ ln -s "$PWD/spot-the-difference/skills/spot-the-difference" ~/.claude/skills/spo
 ```
 
 **On claude.ai** (Pro plan or higher, with code execution enabled): download
-this repository, zip the inner `skills/spot-the-difference` folder, and upload
-that zip under Settings, in the Skills section. Then upload the document
+`spot-the-difference.zip` from the
+[latest release](https://github.com/cabbagecachekid/spot-the-difference/releases/latest)
+and upload it under Settings, in the Skills section. Then upload the document
 versions you want compared into the chat, since claude.ai cannot see your disk.
 
 **No Claude at all:** the script runs standalone in any Mac or Linux terminal:
