@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#edebe6">
+
+<title>spot-the-difference: report what changed between two sets of documents</title>
+<meta name="description" content="A Claude skill that compares two or more sets of documents and reports what differs: values that disagree, headings missing on one side, and where a phrase still appears. Runs locally.">
+
+<!-- favicon: inline SVG, no separate file. two spots, one ringed. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23edebe6'/%3E%3Cellipse cx='11' cy='13' rx='6' ry='5' fill='%23121212'/%3E%3Cellipse cx='22' cy='21' rx='5' ry='6' fill='%23121212'/%3E%3Ccircle cx='22' cy='21' r='2' fill='%2339ff14'/%3E%3C/svg%3E">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="spot-the-difference: report what changed between two sets of documents">
+<meta property="og:description" content="Compare two or more sets of documents. Values that disagree are reported first and separately, because a number changing is almost never on purpose.">
+<meta property="og:url" content="https://cabbagecachekid.github.io/spot-the-difference/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spot-the-difference: report what changed between two sets of documents">
+<meta name="twitter:description" content="Compare two or more sets of documents. Values that disagree are reported first and separately.">
+
+<style>
+  /* ---- palette: dalmatian. off-white ground that does not glare, near-black
+         spots, neon green accent. the green is a FILL or sits on ink only:
+         #39ff14 as text on the ground measures 1.14:1 and fails hard, while
+         ink-on-green and green-on-ink both measure 13.82:1. body text stays
+         ink/muted. verified with contrast.py. ---- */
+  :root {
+    --ground:  #edebe6;  /* soft off-white, 15.72:1 with ink */
+    --surface: #f7f6f2;  /* card surface */
+    --ink:     #121212;  /* spots, body text, borders */
+    --muted:   #57544e;  /* quiet text, 6.33:1 on ground */
+    --neon:    #39ff14;  /* fills and marks only, never text on ground */
+    --hair:    #cfcbc2;  /* decorative hairline */
+    --border:  2px solid var(--ink);
+    --shadow:  5px 5px 0 var(--ink);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+  }
+
+  main { max-width: 50rem; margin: 0 auto; padding: 0 1.25rem; }
+
+  section { padding: 3.5rem 0; border-bottom: var(--border); }
+  section:last-of-type { border-bottom: none; }
+
+  /* ---- type: mono-forward, technical ---- */
+  h1, h2, h3 {
+    font-family: var(--mono); font-weight: 700; line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+  h2 { font-size: clamp(1.5rem, 4.4vw, 2.1rem); margin-bottom: 0.9rem; }
+  p { max-width: 42rem; }
+
+  a { color: var(--ink); font-weight: 700; text-decoration: underline;
+      text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  a:hover { background: var(--neon); text-decoration-color: var(--ink); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  .eyebrow {
+    display: inline-block; font-family: var(--mono); font-weight: 700;
+    font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    background: var(--ink); color: var(--ground);
+    padding: 0.24rem 0.55rem; margin-bottom: 1rem;
+  }
+  .eyebrow.hot { background: var(--neon); color: var(--ink); }
+
+  /* ---- hero ---- */
+  .hero { padding: 3rem 0 3rem; border-bottom: var(--border); position: relative; }
+  .wordmark {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: var(--mono); font-weight: 700; font-size: 0.86rem;
+    letter-spacing: 0.05em; margin-bottom: 1.8rem;
+  }
+  .wordmark::before {
+    content: ""; width: 0.85rem; height: 0.9rem; background: var(--ink);
+    border-radius: 62% 38% 54% 46% / 48% 62% 38% 52%;
+  }
+  .hero h1 {
+    font-size: clamp(1.75rem, 5.4vw, 2.9rem); line-height: 1.1;
+    max-width: 22ch; margin-bottom: 1.2rem;
+  }
+  /* the signature: the payload sits inside a neon spot */
+  .hero h1 mark {
+    background: var(--neon); color: var(--ink);
+    padding: 0.06em 0.32em;
+    border-radius: 58% 42% 52% 48% / 44% 56% 44% 56%;
+    box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  }
+  .lede { font-family: var(--mono); font-size: 0.92rem; max-width: 40rem; color: var(--muted); }
+  .hero-cta { margin-top: 1.8rem; display: flex; flex-wrap: wrap; gap: 0.9rem; align-items: center; min-width: 0; }
+
+  /* the spot field: decorative dalmatian scatter, hidden from AT */
+  .spots { position: absolute; inset: 0; pointer-events: none; z-index: -1; opacity: 0.9; }
+  .spots i { position: absolute; display: block; background: var(--ink); }
+  .spots i:nth-child(1) { width: 52px; height: 43px; top:  4%; right:  3%; border-radius: 63% 37% 48% 52% / 44% 61% 39% 56%; transform: rotate(-12deg); }
+  .spots i:nth-child(2) { width: 21px; height: 25px; top: 27%; right: 14%; border-radius: 52% 48% 61% 39% / 58% 41% 59% 42%; transform: rotate(8deg); }
+  .spots i:nth-child(3) { width: 38px; height: 31px; top: 55%; right:  6%; border-radius: 45% 55% 39% 61% / 62% 38% 62% 38%; transform: rotate(22deg); }
+  .spots i:nth-child(4) { width: 13px; height: 14px; top: 16%; right: 24%; border-radius: 57% 43% 52% 48% / 47% 58% 42% 53%; }
+  .spots i:nth-child(5) { width: 29px; height: 24px; top: 78%; right: 19%; border-radius: 61% 39% 44% 56% / 51% 47% 53% 49%; transform: rotate(-18deg); }
+  .spots i:nth-child(6) { width: 16px; height: 18px; top: 44%; right: 27%; border-radius: 48% 52% 57% 43% / 55% 45% 55% 45%; }
+  .spots i:nth-child(7) { width: 24px; height: 20px; top: 90%; right:  9%; border-radius: 55% 45% 62% 38% / 41% 59% 41% 59%; transform: rotate(14deg); }
+  .spots i:nth-child(8) { width:  9px; height: 10px; top: 68%; right: 30%; border-radius: 50% 50% 58% 42% / 52% 48% 52% 48%; }
+  @media (max-width: 900px) { .spots { display: none; } }
+
+  /* command blocks.
+     min-width:0 is load-bearing. As a flex item .cmd defaults to
+     min-width:auto, so a long nowrap command string inside it forces the whole
+     layout wider than the viewport and the page clips on mobile instead of
+     scrolling inside the box. */
+  .cmd {
+    display: flex; align-items: center; gap: 0.7rem;
+    background: var(--surface); border: var(--border); box-shadow: var(--shadow);
+    padding: 0.65rem 0.8rem;
+    font-family: var(--mono); font-size: 0.8rem;
+    max-width: 100%; min-width: 0; flex: 1 1 22rem;
+  }
+  .cmd code { min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+  .cmd code::-webkit-scrollbar { height: 4px; }
+  .cmd code::-webkit-scrollbar-thumb { background: var(--muted); }
+  .cmd code::-webkit-scrollbar-track { background: transparent; }
+  .cmd--prose code { white-space: normal; overflow-x: visible; line-height: 1.5; }
+  .cmd button {
+    flex-shrink: 0; margin-left: auto;
+    background: transparent; border: 2px solid var(--ink);
+    color: var(--ink); font-family: var(--mono); font-weight: 700; font-size: 0.68rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 0.26rem 0.6rem; cursor: pointer;
+  }
+  .cmd button:hover { background: var(--ink); color: var(--ground); }
+  .cmd button[data-state="ok"] { background: var(--neon); border-color: var(--ink); color: var(--ink); }
+
+  /* the readout: a values-disagree strip, the product in one glance */
+  .readout {
+    font-family: var(--mono); font-size: 0.85rem; margin-top: 1.3rem;
+    background: var(--surface); border: var(--border); border-left: 7px solid var(--ink);
+    padding: 0.85rem 1rem; max-width: 40rem;
+  }
+  .readout .row { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; padding: 0.18rem 0; }
+  .readout .src { color: var(--muted); min-width: 7.5rem; }
+  .readout .hit { background: var(--neon); color: var(--ink); padding: 0 0.3rem; font-weight: 700; }
+  .readout .same { color: var(--muted); }
+  .readout .cap { display: block; margin-top: 0.6rem; color: var(--muted); font-size: 0.76rem; }
+
+  /* ---- mode cards ---- */
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.4rem; }
+  .mode { background: var(--surface); border: var(--border); box-shadow: var(--shadow); padding: 1.1rem 1.15rem; }
+  .mode h3 {
+    display: inline-block; font-size: 0.86rem; letter-spacing: 0;
+    background: var(--ink); color: var(--ground); padding: 0.1rem 0.4rem; margin-bottom: 0.65rem;
+  }
+  .mode p { font-size: 0.88rem; color: var(--muted); }
+  .mode .say { display: block; margin-top: 0.65rem; font-family: var(--mono); font-size: 0.79rem; font-weight: 700; color: var(--ink); }
+
+  /* ---- the rail: spot nodes, filled neon = the human gate ---- */
+  .flow { background: var(--surface); border: var(--border); box-shadow: var(--shadow); padding: 1.4rem 1.5rem 1.3rem; margin-top: 1.4rem; }
+  .flow h3 { font-size: 1.15rem; margin-bottom: 0.35rem; }
+  .flow .promise { font-family: var(--mono); font-size: 0.85rem; margin-bottom: 1.1rem; color: var(--muted); }
+  .rail { list-style: none; position: relative; margin: 0 0 1.1rem; padding-left: 1.85rem; }
+  .rail::before { content: ""; position: absolute; left: 0.4rem; top: 0.6rem; bottom: 0.6rem; width: 2px; background: var(--ink); }
+  .rail li { position: relative; padding: 0.34rem 0; font-size: 0.9rem; }
+  .rail li::before {
+    content: ""; position: absolute; left: -1.55rem; top: 0.6rem;
+    width: 13px; height: 12px; background: var(--ink);
+    border-radius: 60% 40% 55% 45% / 45% 60% 40% 55%;
+  }
+  .rail li.gate::before { background: var(--neon); border: 2px solid var(--ink); }
+  .rail li.gate { font-weight: 700; }
+  .rail .q { font-family: var(--mono); font-weight: 700; font-size: 0.82rem; background: var(--ink); color: var(--ground); padding: 0.04rem 0.32rem; }
+
+  /* ---- what it reports ---- */
+  .rules { list-style: none; margin-top: 1.2rem; border-top: var(--border); }
+  .rules li { padding: 0.9rem 0; border-bottom: 1px solid var(--hair); display: flex; gap: 1.1rem; }
+  .rules li:last-child { border-bottom: var(--border); }
+  .rules .k { font-family: var(--mono); font-weight: 700; font-size: 0.88rem; flex-shrink: 0; width: 10.5rem; }
+  .rules .k span { background: var(--neon); padding: 0.04rem 0.3rem; }
+  .rules .v { font-size: 0.92rem; color: var(--muted); }
+
+  /* ---- specs ---- */
+  .specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.7rem; margin-top: 1.3rem; }
+  .spec { border: var(--border); padding: 0.7rem 0.8rem; background: var(--surface); }
+  .spec dt { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+  .spec dd { font-family: var(--mono); font-size: 0.84rem; font-weight: 700; }
+
+  .install-step { margin-top: 1.2rem; }
+  .install-step > p { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+  .install-step code { font-family: var(--mono); background: var(--surface); border: 1px solid var(--ink); padding: 0 0.22rem; }
+  .install-step .cmd code { border: none; background: none; padding: 0; }
+  .install-step .cmd { margin-top: 0.5rem; }
+
+  footer { padding: 2.6rem 0 3.5rem; font-size: 0.82rem; color: var(--muted); font-family: var(--mono); }
+  footer p + p { margin-top: 0.45rem; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+  .rise { opacity: 0; animation: rise 0.55s cubic-bezier(0.2,0.7,0.2,1) forwards; }
+  .d2 { animation-delay: 0.09s; } .d3 { animation-delay: 0.18s; }
+  @media (prefers-reduced-motion: reduce) { .rise { animation: none !important; opacity: 1 !important; } }
+
+  @media (max-width: 640px) {
+    .modes { grid-template-columns: 1fr; }
+    .rules li { flex-direction: column; gap: 0.3rem; }
+    .rules .k { width: auto; }
+    :root { --shadow: 4px 4px 0 var(--ink); }
+  }
+</style>
+</head>
+
+<body>
+<main>
+
+  <!-- HERO -->
+  <header class="hero">
+    <span class="spots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <p class="wordmark rise">spot-the-difference</p>
+    <h1 class="rise d2">Compare two or more sets of documents. <mark>Report what differs.</mark></h1>
+    <p class="lede rise d3">Values, headings, coverage. Markdown, HTML, text, PDF, Word. Local only, nothing uploaded.</p>
+    <div class="hero-cta rise d3">
+      <div class="cmd">
+        <code>/plugin marketplace add cabbagecachekid/spot-the-difference</code>
+        <button type="button" data-copy>Copy</button>
+      </div>
+      <a href="https://github.com/cabbagecachekid/spot-the-difference">Source</a>
+    </div>
+  </header>
+
+  <!-- FAILURE MODE -->
+  <section>
+    <p class="eyebrow">Failure mode</p>
+    <h2>Copy drifts during production.</h2>
+    <p class="lede">Wording gets settled. Layout gets iterated. By the final render the text is not the text that was approved. One digit in a price. A section that quietly stopped existing.</p>
+    <div class="readout">
+      <div class="row"><span class="src">master.md</span><span>tier costs <span class="hit">$29</span> per month</span></div>
+      <div class="row"><span class="src">index.html</span><span>tier costs <span class="hit">$39</span> per month</span></div>
+      <div class="row"><span class="src same">both</span><span class="same">40% uptake, not reported</span></div>
+      <span class="cap">Values are reported first and separately. Reworded prose is usually deliberate. A changed number usually is not.</span>
+    </div>
+  </section>
+
+  <!-- INTAKE -->
+  <section id="intake">
+    <p class="eyebrow">Before it runs</p>
+    <h2>Four questions.</h2>
+    <article class="flow">
+      <h3>compare</h3>
+      <p class="promise">Question two decides the shape of the output. It is never guessed.</p>
+      <ol class="rail">
+        <li><span class="q">sources</span> two or more paths, file or folder</li>
+        <li class="gate"><span class="q">truth</span> is one of them authoritative, or is there no winner</li>
+        <li><span class="q">scope</span> values, structure, prose, or all of them</li>
+        <li><span class="q">output</span> a summary, a written report, or a to-do list</li>
+      </ol>
+      <p class="promise">Truth named: output is directional, a to-do list for the other sources. No truth named: output stays neutral, a decision list. Three or more sources: the odd one out is named.</p>
+    </article>
+  </section>
+
+  <!-- MODES -->
+  <section>
+    <p class="eyebrow">Two modes</p>
+    <h2>Compare, and trace.</h2>
+    <div class="modes">
+      <div class="mode">
+        <h3>compare</h3>
+        <p>What is different across these sources. Values that disagree, headings present on one side only, and what is missing where.</p>
+        <span class="say">&ldquo;Did my edits make it into the render?&rdquo;</span>
+      </div>
+      <div class="mode">
+        <h3>trace</h3>
+        <p>Where a value or phrase still appears, file and line. Run it after a change to confirm it propagated, or after retiring wording to find the stragglers.</p>
+        <span class="say">&ldquo;Where do I still say the old price?&rdquo;</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT IT REPORTS -->
+  <section>
+    <p class="eyebrow">The report</p>
+    <h2>Four sections, in this order.</h2>
+    <ul class="rules">
+      <li><span class="k"><span>Values</span></span><span class="v">Numbers, dates, money, percentages. Extracted per class and masked between passes, so a price is never shredded into stray digits.</span></li>
+      <li><span class="k"><span>Structure</span></span><span class="v">Headings present in one matched item and not another.</span></li>
+      <li><span class="k"><span>Missing</span></span><span class="v">Not found at any level, not as a file and not as a heading. Separate from items merely stored at a different grain.</span></li>
+      <li><span class="k"><span>Needs your eye</span></span><span class="v">Low confidence pairings and name collisions. Guesses are labelled as guesses.</span></li>
+    </ul>
+  </section>
+
+  <!-- CONTRACT -->
+  <section>
+    <p class="eyebrow hot">The contract</p>
+    <h2>It reports. It does not fix.</h2>
+    <ul class="rules">
+      <li><span class="k"><span>No writes</span></span><span class="v">Nothing is rewritten, synced, or auto-applied. Acting on a difference stays a deliberate act.</span></li>
+      <li><span class="k"><span>No verdicts</span></span><span class="v">Without a source of truth it names the disagreement and stops. It does not score whether a change was an improvement.</span></li>
+      <li><span class="k"><span>No silent drops</span></span><span class="v">Missing optional tools are named with a count. A skipped file is always reported as skipped.</span></li>
+      <li><span class="k"><span>No uploads</span></span><span class="v">Every pass runs on the machine. There is no network call anywhere in it.</span></li>
+    </ul>
+    <dl class="specs">
+      <div class="spec"><dt>Native</dt><dd>md, txt, html</dd></div>
+      <div class="spec"><dt>With pdftotext</dt><dd>pdf</dd></div>
+      <div class="spec"><dt>With pandoc</dt><dd>docx</dd></div>
+      <div class="spec"><dt>Shell</dt><dd>bash 3.2, BSD</dd></div>
+    </dl>
+  </section>
+
+  <!-- INSTALL -->
+  <section>
+    <p class="eyebrow">Free, MIT-licensed</p>
+    <h2>Install.</h2>
+    <div class="install-step">
+      <p>In Claude Code, add the marketplace and install:</p>
+      <div class="cmd"><code>/plugin marketplace add cabbagecachekid/spot-the-difference</code><button type="button" data-copy>Copy</button></div>
+      <div class="cmd"><code>/plugin install spot-the-difference@spot-the-difference</code><button type="button" data-copy>Copy</button></div>
+    </div>
+    <div class="install-step">
+      <p>Or run the script directly, with no install at all:</p>
+      <div class="cmd"><code>bash spot.sh compare --source a=./docs --source b=./site --truth a</code><button type="button" data-copy>Copy</button></div>
+    </div>
+    <div class="install-step">
+      <p>Then say this to Claude:</p>
+      <div class="cmd cmd--prose"><code>Compare my approved copy against what is on the site and tell me what drifted.</code><button type="button" data-copy>Copy</button></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>MIT license &middot; <a href="https://github.com/cabbagecachekid/spot-the-difference">Source on GitHub</a> &middot; By <a href="https://github.com/cabbagecachekid">cabbagecachekid</a></p>
+    <p>No analytics, no trackers, no signup. A static page about free software.</p>
+  </footer>
+
+</main>
+
+<script>
+  // copy buttons: clipboard API with an execCommand fallback, no dependencies
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  document.querySelectorAll("[data-copy]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var text = btn.parentElement.querySelector("code").textContent;
+      function done(ok) {
+        btn.textContent = ok ? "Copied" : "Press ⌘C";
+        btn.setAttribute("data-state", ok ? "ok" : "err");
+        if (!ok) {
+          var range = document.createRange();
+          range.selectNodeContents(btn.parentElement.querySelector("code"));
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        setTimeout(function () { btn.textContent = "Copy"; btn.removeAttribute("data-state"); }, 1600);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); },
+          function () { done(legacyCopy(text)); });
+      } else {
+        done(legacyCopy(text));
+      }
+    });
+  });
+</script>
+</body>
+</html>
