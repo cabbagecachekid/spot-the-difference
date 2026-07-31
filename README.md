@@ -8,6 +8,8 @@ different: which numbers disagree, which sections exist in one and not the other
 and where wording has moved. Everything runs **on your own machine**. Nothing is
 uploaded. Runs on a stock Mac or Linux shell.
 
+**Landing page:** https://cabbagecachekid.github.io/spot-the-difference/
+
 ## The problem it solves
 
 You settle the wording. Then you start moving things around, reformatting,
