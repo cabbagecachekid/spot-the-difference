@@ -148,7 +148,10 @@
   .cmd button[data-state="ok"] { background: var(--neon); border-color: var(--ink); color: var(--ink); }
 
   /* the readout: a two-source comparison table, the product in one glance */
-  .readout { margin-top: 1.3rem; max-width: 42rem; }
+  .readout { margin-top: 1.3rem; max-width: 42rem; overflow-x: auto;
+             scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+  .readout::-webkit-scrollbar { height: 4px; }
+  .readout::-webkit-scrollbar-thumb { background: var(--muted); }
   .readout table {
     width: 100%; border-collapse: collapse;
     font-family: var(--mono); font-size: 0.82rem;
@@ -162,6 +165,8 @@
   .readout tbody tr + tr td { border-top: 1px solid var(--hair); }
   .readout tbody th { font-weight: 400; color: var(--muted); white-space: nowrap; }
   .readout .hit { background: var(--neon); color: var(--ink); padding: 0 0.28rem; font-weight: 700; }
+  .readout .flag { background: var(--ink); color: var(--neon); padding: 0.04rem 0.32rem; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; white-space: nowrap; }
+  .readout .ok { color: var(--muted); }
   .readout .cap { margin-top: 0.6rem; color: var(--muted); font-size: 0.78rem; font-family: var(--mono); }
   @media (max-width: 560px) { .readout table { font-size: 0.74rem; } .readout th, .readout td { padding: 0.4rem 0.45rem; } }
 
@@ -258,6 +263,7 @@
             <th scope="col">Claim</th>
             <th scope="col">welcome-email.md</th>
             <th scope="col">landing-page.html</th>
+            <th scope="col">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -265,16 +271,19 @@
             <th scope="row">setup time</th>
             <td>under <span class="hit">10 minutes</span></td>
             <td>under <span class="hit">30 minutes</span></td>
+            <td><span class="flag">DRIFT</span></td>
           </tr>
           <tr>
             <th scope="row">what it is called</th>
             <td><span class="hit">Workspaces</span></td>
             <td><span class="hit">Projects</span></td>
+            <td><span class="flag">DRIFT</span></td>
           </tr>
           <tr>
             <th scope="row">plan tiers</th>
             <td>three</td>
             <td>three</td>
+            <td><span class="ok">agree</span></td>
           </tr>
         </tbody>
       </table>
