@@ -53,8 +53,16 @@ ext_of() {
 }
 
 mtime() {
-  # BSD stat. Falls back to "?" rather than failing the run.
-  stat -f "%Sm" -t "%Y-%m-%d" "$1" 2>/dev/null || echo "?"
+  # BSD stat first, GNU stat second, "?" rather than failing the run.
+  # The BSD attempt is validated by shape, not exit code: on GNU stat, -f means
+  # "filesystem status", which SUCCEEDS and prints device junk where the date
+  # should be.
+  local d
+  d="$(stat -f "%Sm" -t "%Y-%m-%d" "$1" 2>/dev/null)"
+  case "$d" in
+    [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) printf '%s\n' "$d"; return ;;
+  esac
+  stat -c "%y" "$1" 2>/dev/null | cut -c1-10 | grep . || echo "?"
 }
 
 norm_text() {

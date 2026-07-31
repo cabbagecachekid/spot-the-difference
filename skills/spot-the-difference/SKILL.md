@@ -62,6 +62,17 @@ Formats: `.md`, `.txt`, `.html` always; `.pdf` if `pdftotext` is installed;
 whether it was skipped for a missing tool or because the file type is not
 supported at all. Nothing is dropped in silence.
 
+The script runs on macOS (bash 3.2, BSD userland) and GNU/Linux alike.
+
+## If the user's files are not on this machine
+
+On a sandboxed surface (claude.ai chat), there is no local disk to point at.
+Ask the user to upload each version, keep each version's files in a separate
+folder named by its label, and run the same commands on the uploaded copies.
+Everything still happens inside the session; the script makes no network calls.
+One caveat to state in the results: last-modified dates on uploads describe the
+upload, not the original file — never read anything into them there.
+
 ## Step 3 — Present the results
 
 The raw report is long. Do not paste it whole. Read it and lead with what matters.

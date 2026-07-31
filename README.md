@@ -6,7 +6,7 @@ spot-the-difference is an [Agent Skill](https://platform.claude.com/docs/en/agen
 for Claude. Point it at two or more sets of documents and it reports what is
 different: which numbers disagree, which sections exist in one and not the other,
 and where wording has moved. Everything runs **on your own machine**. Nothing is
-uploaded. Built for a stock Mac.
+uploaded. Runs on a stock Mac or Linux shell.
 
 ## The problem it solves
 
@@ -141,9 +141,13 @@ Any other file type is also counted and named, so pointing this at a folder of
 mixed formats tells you what it could not read rather than quietly leaving it
 out. Nothing is dropped silently.
 
-Built for and tested on a stock macOS shell (bash 3.2, BSD userland) with no
-install step. It is not tested on Linux; the one known macOS-ism left is the
-last-modified lookup, which degrades to `?` in the report rather than failing.
+Runs on a stock macOS shell (bash 3.2, BSD userland) and on GNU/Linux
+(verified on Ubuntu 24.04), with no install step either way.
+
+Outside Claude Code — in claude.ai chat, for instance — there is no local disk
+for the skill to read, so upload the versions you want compared and it works on
+the uploaded copies inside the session. Last-modified dates there describe the
+upload, not your original files.
 
 ## What it will not do
 

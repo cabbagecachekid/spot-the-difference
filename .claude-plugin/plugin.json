@@ -1,6 +1,6 @@
 {
   "name": "spot-the-difference",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Compare two or more sets of documents and report what differs: values that disagree, sections present on one side only, and where a phrase still appears. Runs locally, reports without rewriting.",
   "author": { "name": "Caitlin Nielson" },
   "license": "MIT",
