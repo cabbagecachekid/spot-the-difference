@@ -56,6 +56,21 @@ Question 2 matters most. With a source of truth, every difference is a task:
 bring the others in line. Without one, the same difference is a decision you have
 to make. The skill will not guess which situation you are in.
 
+```mermaid
+flowchart LR
+    A["source A<br>file or folder"] --> FL["flatten<br>items matched by name,<br>then by heading"]
+    B["source B<br>file or folder"] --> FL
+    FL --> V["values<br>money, dates,<br>percentages"]
+    FL --> ST["structure<br>headings on one<br>side only"]
+    FL --> CV["coverage<br>missing at<br>any level"]
+    V --> R["report<br>values first"]
+    ST --> R
+    CV --> R
+    R --> Q{"source of truth<br>named?"}
+    Q -- yes --> TODO["to-do list:<br>bring the others in line"]
+    Q -- no --> DEC["decision list:<br>who is right stays your call"]
+```
+
 ## Two modes
 
 **compare** answers "what is different across these sources?"
