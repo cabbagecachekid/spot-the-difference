@@ -108,6 +108,9 @@ attempt the check from memory, and do not treat its absence as an error.
   edited will look newer than it is. Never resolve a disagreement on mtime alone.
 - **PDF and plain text carry no heading structure**, so those sources contribute
   values and prose but not structural comparison.
+- **An HTML heading split across source lines is not seen.** The heading scan is
+  line-based; `<h2>Only\nHere</h2>` contributes no heading, though its text still
+  counts for values and trace.
 - **Matching is by name, then by heading, then by prefix.** It does not understand
   that "Selected Projects" and "Projects" are the same section. Differences in
   naming show up as findings, which is usually correct but occasionally noise.

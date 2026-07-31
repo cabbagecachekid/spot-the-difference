@@ -338,6 +338,7 @@
       <li><span class="k"><span>No verdicts</span></span><span class="v">Without a source of truth it names the disagreement and stops there. Whether a wording change was an improvement is your call, never a score.</span></li>
       <li><span class="k"><span>No silent drops</span></span><span class="v">Missing optional tools are named with a count. A skipped file is always reported as skipped.</span></li>
       <li><span class="k"><span>No uploads</span></span><span class="v">Every pass runs on the machine. There is no network call anywhere in it.</span></li>
+      <li><span class="k"><span>Real limits</span></span><span class="v">Matching is by name, heading, then prefix; it does not know that &ldquo;Projects&rdquo; and &ldquo;Selected Projects&rdquo; are the same section. Values and headings are compared mechanically; prose is read, not diffed. PDF and plain text contribute no heading structure.</span></li>
     </ul>
     <dl class="specs">
       <div class="spec"><dt>Native</dt><dd>md, txt, html</dd></div>
