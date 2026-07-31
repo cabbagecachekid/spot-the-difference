@@ -105,7 +105,11 @@ Four sections, in this order:
 
 ## Install
 
-In Claude Code:
+This is an [Agent Skill](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview),
+so it works anywhere Skills do. Installs do not sync between surfaces; set it up
+on each one you use.
+
+**In Claude Code** (two commands, then just ask for a comparison):
 
 ```
 /plugin marketplace add cabbagecachekid/spot-the-difference
@@ -119,7 +123,16 @@ git clone https://github.com/cabbagecachekid/spot-the-difference.git
 ln -s "$PWD/spot-the-difference/skills/spot-the-difference" ~/.claude/skills/spot-the-difference
 ```
 
-The script also runs standalone, with no install at all.
+**On claude.ai** (Pro plan or higher, with code execution enabled): download
+this repository, zip the inner `skills/spot-the-difference` folder, and upload
+that zip under Settings, in the Skills section. Then upload the document
+versions you want compared into the chat, since claude.ai cannot see your disk.
+
+**No Claude at all:** the script runs standalone in any Mac or Linux terminal:
+
+```bash
+bash spot.sh compare --source draft=./docs --source published=./site
+```
 
 ## Formats and dependencies
 
