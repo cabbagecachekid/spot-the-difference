@@ -24,8 +24,11 @@ Ask these up front. Skip any the user already answered.
 3. **What counts this run?** Values, structure, prose, or all of them. Default to
    all. If specific terms matter (a product name, a price), collect them as a
    watchlist.
-4. **What do you want at the end?** A summary in chat, a written report, or a
-   to-do list.
+4. **What shape do you want the output in?** Ask; do not default. Three shapes,
+   each with a template below:
+   - **inline** — findings summarized right here in chat.
+   - **doc** — a markdown report written to a file.
+   - **sheet** — a CSV, one row per finding, for a spreadsheet.
 
 Do not skip question 2. Whether a difference is a *task* or a *decision* depends
 entirely on whether something is authoritative, and only the user knows that.
@@ -85,6 +88,53 @@ just filed differently. They are usually not findings.
 
 **Check "Needs your eye."** Anything there is a guess the tool is not confident
 about. Confirm those with the user rather than reporting them as fact.
+
+## Output templates
+
+Whichever shape was chosen in question 4, two rules hold: values lead, and the
+ending follows question 2 (to-do list with a truth, decision list without one).
+For doc and sheet, confirm the destination path with the user before writing,
+and never write into any of the compared sources.
+
+**inline** — a tight summary in chat, not the raw report:
+
+```markdown
+**<n> findings between `A` and `B`.**
+
+Values that disagree: one bullet per conflict, or "none".
+Missing from `B`: item, item, item.
+Filed differently (usually fine): <n> items, named only if few.
+Needs your eye: only if present.
+Skipped: <n> files (<types>), only if any.
+
+Then the to-do list or decision list.
+```
+
+**doc** — a markdown file, `drift-report-YYYY-MM-DD.md` unless the user names
+it. Curate; do not paste the raw report:
+
+```markdown
+# Drift report: <A> vs <B> (YYYY-MM-DD)
+
+Sources, and which one is truth if any.
+
+## Values that disagree
+## Missing entirely
+## Filed differently
+## Needs your eye
+## To-do   (or ## Decisions, per question 2)
+## Skipped files
+```
+
+**sheet** — a CSV with exactly this header, one row per finding:
+
+```csv
+item,finding,in,not_in,detail,action
+```
+
+`finding` is one of `value`, `structure`, `missing`, `grain`, `collision`.
+`action` is the task when a truth was named, or `decide` when none was. Quote
+fields that contain commas.
 
 ## Optional: has the prose drifted toward machine voice?
 

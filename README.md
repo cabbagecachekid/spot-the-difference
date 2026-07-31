@@ -50,7 +50,7 @@ Four questions, then a report.
 1. What am I comparing?
 2. Is one of them the source of truth, or is there no winner?
 3. What counts: values, structure, prose, or all of it?
-4. What do you want at the end?
+4. What shape should the output take: inline in chat, a doc, or a sheet (CSV)?
 
 Question 2 matters most. With a source of truth, every difference is a task:
 bring the others in line. Without one, the same difference is a decision you have
